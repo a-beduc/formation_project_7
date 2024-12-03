@@ -2,85 +2,57 @@ import time
 
 
 DATA = {
-    "#0001": 20,
-    "#0002": 30,
-    "#0003": 50,
-    "#0004": 70,
-    "#0005": 60,
-    "#0006": 80,
-    "#0007": 22,
-    "#0008": 26,
-    "#0009": 48,
-    "#0010": 34,
-    "#0011": 42,
-    "#0012": 110,
-    "#0013": 38,
-    "#0014": 14,
-    "#0015": 18,
-    "#0016": 8,
-    "#0017": 4,
-    "#0018": 10,
-    "#0019": 24,
-    "#0020": 114
+    "#0001": (20, 21, 0.05),
+    "#0002": (30, 33, 0.10),
+    "#0003": (50, 57.5, 0.15),
+    "#0004": (70, 84, 0.20),
+    "#0005": (60, 70.2, 0.17),
+    "#0006": (80, 100, 0.25),
+    "#0007": (22, 23.54, 0.07),
+    "#0008": (26, 28.86, 0.11),
+    "#0009": (48, 54.24, 0.13),
+    "#0010": (34, 43.18, 0.27),
+    "#0011": (42, 49.14, 0.17),
+    "#0012": (110, 119.9, 0.09),
+    "#0013": (38, 46.74, 0.23),
+    "#0014": (14, 14.14, 0.01),
+    "#0015": (18, 18.54, 0.03),
+    "#0016": (8, 8.64, 0.08),
+    "#0017": (4, 4.48, 0.12),
+    "#0018": (10, 11.4, 0.14),
+    "#0019": (24, 29.04, 0.21),
+    "#0020": (114, 134.52, 0.18),
 }
 
-GAIN_AFTER_TWO_YEARS = {
-    "#0001": 21,
-    "#0002": 33,
-    "#0003": 57.5,
-    "#0004": 84,
-    "#0005": 70.2,
-    "#0006": 100,
-    "#0007": 23.54,
-    "#0008": 28.86,
-    "#0009": 54.24,
-    "#0010": 43.18,
-    "#0011": 49.14,
-    "#0012": 119.9,
-    "#0013": 46.74,
-    "#0014": 14.14,
-    "#0015": 18.54,
-    "#0016": 8.64,
-    "#0017": 4.48,
-    "#0018": 11.4,
-    "#0019": 29.04,
-    "#0020": 134.52
-}
 
-BEST_GAIN = 0
-BEST_PATH = []
+def knapsack_brute_force(bank, n, list_key):
+    if n == 0 or bank == 0:
+        return bank, []
 
+    elif DATA[list_key[n-1]][0] > bank:
+        return knapsack_brute_force(bank, n-1, list_key)
 
-def find_path(bank, current_path, current_gain, sorted_keys, start_index):
-    global BEST_GAIN, BEST_PATH
+    else:
+        include_value, new_item_list = knapsack_brute_force(
+            bank-DATA[list_key[n-1]][0], n-1, list_key)
+        include_value += DATA[list_key[n-1]][1]
+        new_item_list = new_item_list + [list_key[n-1]]
 
-    for i in range(start_index, len(sorted_keys)):
-        key = sorted_keys[i]
-        cost = DATA[key]
-        gain = GAIN_AFTER_TWO_YEARS[key]
+        exclude_value, old_item_list = knapsack_brute_force(bank, n-1, list_key)
 
-        if bank - cost >= 0:
-            new_bank = bank - cost
-            new_path = current_path + [key]
-            new_gain = current_gain + gain
-            find_path(new_bank, new_path, new_gain, sorted_keys, i + 1)
+        if include_value > exclude_value:
+            return include_value, new_item_list
         else:
-            break
-
-    if (bank + current_gain) > BEST_GAIN:
-        BEST_GAIN = bank + current_gain
-        BEST_PATH = [current_path]
-    elif current_gain == BEST_GAIN:
-        BEST_PATH.append(current_path)
+            return exclude_value, old_item_list
 
 
 def main():
-    global BEST_GAIN, BEST_PATH
+    list_key = sorted(list(DATA.keys()), key=lambda x: DATA[x][2])
     bank = 500
-    sorted_keys = sorted(DATA.keys(), key=lambda x: DATA[x])
-    find_path(bank, [], 0, sorted_keys, 0)
-    print(f"Maximum Gain: {BEST_GAIN}")
-    print(f"Best Paths: {BEST_PATH}")
+    n = len(list_key)
+    max_value, selected_items = knapsack_brute_force(bank, n, list_key)
+    print("Max possible bank after two years : ", max_value)
+    print("Selected items to maximise gain : ", selected_items)
 
 
 if __name__ == '__main__':
